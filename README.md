@@ -325,7 +325,6 @@ This section details the creation of Organizational Units (OUs), a standard user
     * **Group name:** `IT_Group`
     * **Group scope:** `Global` (default, suitable for most cases)
     * **Group type:** `Security` (default)
-    * `[Screenshot: Create New Group Dialog]`
 4.  Click **OK**.
 5.  **Add `Stanly.Sunny` to `IT_Group`:**
     * Double-click `IT_Group` to open its properties.
