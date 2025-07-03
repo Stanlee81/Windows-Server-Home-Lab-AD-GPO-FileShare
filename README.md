@@ -479,7 +479,6 @@ This suggested an issue during the initial boot and domain user authentication p
     * On `StanlyPC`, after logging in via the workaround, open **Run** (`Win + R`) and type `rsop.msc`.
     * Navigate to **Computer Configuration** -> **Windows Settings** -> **Security Settings** -> **Local Policies** -> **User Rights Assignment**.
     * Specifically checked the policy "Allow log on locally."
-    * `[Screenshot: rsop.msc showing "Allow log on locally" setting]`
     * The unexpected finding was that this policy was showing as "Not Defined" or was not explicitly granting logon rights to standard users, despite `Authenticated Users` typically having this right by default in a domain environment. This indicated that another policy or setting might be overriding or not properly applying the default.
 
 ### 8.4. Resolution: Explicitly Setting "Allow log on locally" via GPO
@@ -498,7 +497,6 @@ The permanent fix involved explicitly defining the "Allow log on locally" user r
 9.  Click **"Add User or Group..."**
 10. Type `BUILTIN\Users` and click **"Check Names."** This includes all local and domain users.
 11. Click **OK**, then **OK**.
-    * `[Screenshot: Allow log on locally properties with BUILTIN\Users added]`
 12. Close the Group Policy Management Editor.
 13. **Force Group Policy Update on `StanlyPC`:**
     * On `StanlyPC`, open **Command Prompt as Administrator**.
