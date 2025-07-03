@@ -16,8 +16,7 @@ This repository documents the setup and configuration of a foundational Windows 
 * **NTFS Permissions:** Granular security control for shared folders.
 * **Windows 10/11 Client:** Workstation for testing domain integration and GPO application.
 
-## Lab Architecture Diagram (Optional but highly recommended)
-*(You can upload a diagram image to your `diagrams/` folder and link it here, e.g., `![Lab Diagram](diagrams/lab_diagram.png)`)*
+
 
 ## Key Lab Phases & Configurations
 
@@ -27,7 +26,14 @@ This repository documents the setup and configuration of a foundational Windows 
 * Installation and promotion of AD DS (`mylabs.com`).
 * DNS server configuration.
 * DHCP server installation, authorization, and scope creation (`192.168.1.50 - 192.168.1.200`).
-* *[Include relevant screenshots from DC01 here]*
+![DC01-IPConfig](https://github.com/user-attachments/assets/93cf8e4c-3ddf-4e50-962e-840db3eab7fd)
+![DHCP IP Range](https://github.com/user-attachments/assets/bee34779-8f30-4a1d-9334-e2ea39cc08a8)
+![DHCP Address Lease](https://github.com/user-attachments/assets/22a92e9c-14a4-422f-a5f1-f0c47581ad72)
+![ADUC-OU Structure](https://github.com/user-attachments/assets/f62e364f-9529-44d1-925c-5936a337d154)
+![ADUC - IT_Group Members](https://github.com/user-attachments/assets/951c8c02-d86c-46a7-be01-a4cdbc0f9cf1)
+![GPO Editor- Documents Redirection](https://github.com/user-attachments/assets/e14c43a9-4664-46bc-b5f9-a8b74ef1c077)
+![GPO Editor- Desktop Redirection](https://github.com/user-attachments/assets/5d585aec-6851-44e2-a4f3-b0e63bbe50b6)
+
 
 ### 2. File Server (FS01) Setup
 * VM provisioning and Windows Server OS installation.
