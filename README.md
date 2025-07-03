@@ -57,6 +57,7 @@ This repository documents the setup and configuration of a foundational Windows 
 * Set target to "Basic - Redirect everyone's folder to the same location" with root path `\\FS01\ITUsersData`.
 * **Crucially, unchecked "Grant the user exclusive rights..."** to allow administrators access for troubleshooting/backup.
 * GPO was enforced.
+ ![Uploading Redirection_Policy.PNG…]() 
 ![GPO Editor- Desktop Redirection](https://github.com/user-attachments/assets/fa189a1a-adfc-4d27-9ebd-30ea0b185f08)
 ![GPO Editor- Documents Redirection](https://github.com/user-attachments/assets/af9d4b04-a356-4f58-9532-8bed2938f2a6)
 
