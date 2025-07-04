@@ -442,74 +442,82 @@ It's important to control which users/groups the GPO applies to. We will make su
 
 ---
 
-## 8. Troubleshooting: Client Login Issue (`StanlyPC`)
+### **8. Troubleshooting: Client Login Issue (`StanlyPC`)**
 
-During the initial setup and domain join of `StanlyPC`, an issue was encountered where domain users (like `stanly.sunny`) could not directly log in at the console after a cold boot, receiving a "Remote Desktop Services" error. A workaround was discovered, and then a permanent fix implemented.
+This section details the persistent login issues encountered on the `StanlyPC` client machine for domain users, specifically `mylabs\stanly.sunny`, and the systematic troubleshooting steps undertaken to resolve them.
 
-### 8.1. Problem Description
+**8.1. Problem Description**
+* **Initial Symptom:** Domain user `mylabs\stanly.sunny` was unable to log in directly to `StanlyPC`, receiving a "Remote Desktop Services" error. Local Administrator (`mylabs\Administrator`) could log in.
 
-When attempting to log in directly to `StanlyPC` as `mylabs\stanly.sunny` (or any domain user) after a cold boot or a full shutdown/restart, the following error message appeared, preventing login:
+![Error while Loggin in when restarted](https://github.com/user-attachments/assets/ca40d1a2-8a18-4f17-86b2-602194dfcd11)
 
-> "The Group Policy Client service failed the sign-in. The universal unique identifier (UUID) type is not supported."
->
-> Followed by:
->
-> "The sign-in method you're trying to use isn't allowed. For more info, contact your network administrator."
->
-> Although the error message often mentioned "Remote Desktop Services," the underlying issue was a permission problem related to local logon rights.
+* **Key Observations:**
+    * `StanlyPC` was successfully joined to the `mylabs.com` domain.
+    * `ping DC01.mylabs.com` and `nslookup DC01.mylabs.com` were successful.
+    * Group Policy ("Allow log on locally") was confirmed to be correctly applied to `mylabs\stanly.sunny` via `gpresult /r` and Event Viewer.
+    * Initial Event Viewer checks (Application, System, Security logs) showed generic errors or warnings (e.g., DistributedCOM, DNS Client, Time-Service, GPO errors). No `Event ID 4625` (Account Logon Failed) was recorded in the Security log for the failed domain user attempts.
 
+**8.2. Diagnostic Steps & Findings**
 
-### 8.2. Initial Workaround
+The investigation consistently pointed towards underlying issues with network readiness and critical service startup during boot, specifically impacting time synchronization. The absence of `Event ID 4625` suggested the failure was not a standard security policy denial, but a more fundamental issue.
 
-A temporary workaround was discovered:
-1.  Log in to `StanlyPC` using the **local Administrator** account.
-2.  Once logged in, click the Start button, click the user icon, and select **"Switch user."**
-3.  From the login screen, `mylabs\stanly.sunny` (and other domain users) could then successfully log in.
-
-This suggested an issue during the initial boot and domain user authentication process that was "primed" by a local administrator login.
-
-### 8.3. Diagnostic Steps
-
-1.  **Checking Group Policy Application:**
-    * On `StanlyPC`, after logging in via the workaround, open **Command Prompt as Administrator**.
-    * Run `gpresult /r`.
-    * This command showed that the `Default Domain Policy` was being applied.
-    
-2.  **Using `rsop.msc`:**
-    * On `StanlyPC`, after logging in via the workaround, open **Run** (`Win + R`) and type `rsop.msc`.
-    * Navigate to **Computer Configuration** -> **Windows Settings** -> **Security Settings** -> **Local Policies** -> **User Rights Assignment**.
-    * Specifically checked the policy "Allow log on locally."
-    * The unexpected finding was that this policy was showing as "Not Defined" or was not explicitly granting logon rights to standard users, despite `Authenticated Users` typically having this right by default in a domain environment. This indicated that another policy or setting might be overriding or not properly applying the default.
-
-### 8.4. Resolution: Explicitly Setting "Allow log on locally" via GPO
-
-The permanent fix involved explicitly defining the "Allow log on locally" user right in Group Policy for all standard users.
-
-1.  On `DC01`, log in as `mylabs\Administrator`.
-2.  Open **Group Policy Management**.
-3.  Expand `Forest: mylabs.com` -> `Domains` -> `mylabs.com` -> **Group Policy Objects**.
-4.  Right-click **"Default Domain Policy"** and select **"Edit..."**.
-    * **Note:** While it's generally best practice to create new GPOs for specific settings, modifying the `Default Domain Policy` for a fundamental setting like "Allow log on locally" is sometimes done for immediate, broad impact in a lab. For production, consider a new GPO linked to the relevant OUs.
-5.  Navigate to: **Computer Configuration** -> **Policies** -> **Windows Settings** -> **Security Settings** -> **Local Policies** -> **User Rights Assignment**.
-6.  Locate the policy **"Allow log on locally."**
-7.  Double-click this policy.
-8.  Check **"Define these policy settings."**
-9.  Click **"Add User or Group..."**
-10. Type `BUILTIN\Users` and click **"Check Names."** This includes all local and domain users.
-11. Click **OK**, then **OK**.
-12. Close the Group Policy Management Editor.
-13. **Force Group Policy Update on `StanlyPC`:**
-    * On `StanlyPC`, open **Command Prompt as Administrator**.
-    * Type:
+* **Initial Suspects & Eliminations:**
+    * **User Rights Assignment:** Confirmed "Allow log on locally" was correctly applied via GPO for `Authenticated Users` (which `mylabs\stanly.sunny` is a part of).
+    * **Network Connectivity/DNS:** `ping` and `nslookup` commands confirmed basic connectivity and name resolution to `DC01`.
+* **Focus on Time Synchronization:**
+    * **Event Log Warnings:** Persistent `Time-Service warning (Event ID 129)` and `DNS Client warnings (Event ID 1014)` were observed on `StanlyPC`, indicating ongoing time synchronization and DNS resolution challenges.
+    * **Time Resync Failure on `StanlyPC`:**
+        Attempting to force time synchronization from `DC01` on `StanlyPC` failed, suggesting `DC01` was not providing usable time data.
         ```cmd
-        gpupdate /force
+        w32tm /resync /rediscover
         ```
-14. **Restart `StanlyPC`** (a full restart, not just log off).
+        * **Result:** "The computer did not resync because no time data was available."
+    * **Crucial Discovery: Incorrect Time on DC01:** It was discovered that `DC01`, the authoritative time source for the `mylabs.com` domain, had an incorrect time (e.g., 1:14 PM) despite having the correct date. This large discrepancy (hours off from actual UK time) was the root cause of Kerberos authentication failures, as Kerberos requires clocks to be synchronized within a few minutes.
 
-### 8.5. Verification of Fix
+**8.3. Resolution**
 
-After the restart, domain users (e.g., `mylabs\stanly.sunny`) were able to log in directly to `StanlyPC` from a cold boot without encountering the previous error or needing the local admin workaround.
+The problem was resolved by manually setting the correct time on the Domain Controller (`DC01`) and then ensuring `StanlyPC` successfully synchronized its time from the now-accurate `DC01`.
 
+* **1. Correcting Time on `DC01` (Manual for Isolated Lab Environment):**
+    * **Action:** Manually set the system clock on `DC01` to the accurate current UK time via the Date & Time settings in the Control Panel.
+    * **Restart Time Service (Command Prompt as Administrator on `DC01`):**
+        ```cmd
+        net stop w32time
+        net start w32time
+        ```
+    * **Verification (Command Prompt as Administrator on `DC01`):**
+        ```cmd
+        w32tm /query /status
+        ```
+        * **Expected `Source`:** `Local CMOS Clock` or `VM IC Time Synchronization Provider` (as it's an isolated VM not internet-connected).
+        * **Crucial:** Visually confirmed that the displayed system time on `DC01`'s taskbar was now accurate and matched a reliable external time source.
+
+* **2. Re-Synchronizing `StanlyPC` with Corrected `DC01` Time (Command Prompt as Administrator on `StanlyPC`):**
+    * **Reset Time Service Configuration:**
+        ```cmd
+        net stop w32time
+        w32tm /unregister
+        w32tm /register
+        net start w32time
+        ```
+    * **Configure Time Source to DC01:** This command ensures `StanlyPC` looks to `DC01` for time.
+        ```cmd
+        w32tm /config /syncfromflags:manual /manualpeerlist:"DC01.mylabs.com" /reliable:yes /update
+        ```
+    * **Force Immediate Resync:** This command pulls the *new, corrected* time from `DC01`.
+        ```cmd
+        w32tm /resync /rediscover
+        ```
+    * **Verification (`StanlyPC`):**
+        ```cmd
+        w32tm /query /status
+        ```
+        * **Expected `Source`:** `DC01.mylabs.com`.
+        * **Expected `Last Successful Sync Time`:** A very recent timestamp.
+        * **Crucial:** Visually confirmed that `StanlyPC`'s taskbar time now perfectly matched `DC01`'s correct UK time.
+
+**8.4. Outcome**
+After ensuring `DC01` had the correct time and `StanlyPC` successfully synchronized from it, a full system restart of `StanlyPC` was performed. Upon restart, `mylabs\stanly.sunny` was able to log in directly to the workstation without encountering the "Remote Desktop Services" error, confirming that the time synchronization discrepancy was the fundamental cause of the authentication failures.
 ---
 
 ## 9. Future Lab Enhancements
