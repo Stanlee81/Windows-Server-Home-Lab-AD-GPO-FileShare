@@ -526,7 +526,7 @@ This section lists potential next steps and advanced topics to explore within th
 
 ### 9.1. High Availability & Redundancy
 
-1.  **Add a Second Domain Controller (DC02):**
+1.  **Add a Second Domain Controller (DC02):** (https://github.com/Stanlee81/Hyper-V-Lab-Deploying-a-Second-Domain-Controller-DC02-/blob/main/README.md)
     * **Goal:** Provide fault tolerance for Active Directory, DNS, and DHCP services.
     * **Process:** Create a new Windows Server VM (`DC02`), join it to the domain, install AD DS role, and promote it as an additional domain controller. Configure DNS pointers on both `DC01` and `DC02` to reference each other.
 2.  **Implement Distributed File System (DFS) Namespace and Replication (DFS-R):**
