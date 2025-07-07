@@ -574,7 +574,7 @@ This section lists potential next steps and advanced topics to explore within th
 
 ### 9.5. Networking & Connectivity
 
-1.  **Introduce a Router VM with NAT:**
+1.  **Introduce a Router VM with NAT:** (https://github.com/Stanlee81/HyperV-Lab-NAT-DC2)
     * **Goal:** Simulate internet access for lab VMs without directly exposing them, and practice basic routing.
     * **Process:** Create a new VM (`RouterVM`) with two network adapters (one to `Internal_Lab_Switch`, one to an external virtual switch), and configure the "Remote Access" role with NAT.
 2.  **Implement a Second Internal Network/VLAN:**
