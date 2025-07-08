@@ -562,7 +562,7 @@ This section lists potential next steps and advanced topics to explore within th
 
 ### 9.4. Add New Server Roles
 
-1.  **Print Server:**
+1.  **Print Server:** (https://github.com/Stanlee81/yperV-Lab-PrintServer-GPO-Deployment/blob/main/README.md)
     * **Goal:** Centralize print management and simplify printer deployment to client machines.
     * **Process:** Install the "Print and Document Services" role on a server (e.g., `FS01` or a new `PrintSrv01`), add a printer, and deploy it via GPO.
 2.  **Web Server (IIS):**
