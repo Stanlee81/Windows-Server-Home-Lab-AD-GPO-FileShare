@@ -1,5 +1,5 @@
 # Windows-Server-Home-Lab-AD-GPO-FileShare
-Comprehensive home lab demonstrating Windows Server deployment, Active Directory, DHCP, DNS, file sharing, and Group Policy-based Folder Redirection."
+Comprehensive lab demonstrating Windows Server deployment, Active Directory, DHCP, DNS, file sharing, and Group Policy-based Folder Redirection."
 # Windows Server 2022 Home Lab: Active Directory, File Services & GPO
 
 This repository documents the step-by-step setup and configuration of a foundational Windows Server 2022 home lab environment using Hyper-V. The lab demonstrates core skills in Active Directory Domain Services (AD DS), DNS, DHCP, file server management, Group Policy Object (GPO) implementation, and basic troubleshooting.
